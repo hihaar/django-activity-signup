@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+
+{% block style %}
+<style>
+    .welcome-container {
+        padding-top: 80px;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    .welcome-card {
+        padding: 32px;
+        text-align: center;
+        margin: 16px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+    }
+    .welcome-actions {
+        margin-top: 32px;
+    }
+    .welcome-actions .mdui-btn {
+        margin: 0 8px;
+    }    .logo-image {
+        max-width: 300px;
+        margin-bottom: 24px;
+    }
+    
+    /* 支持WebP的浏览器使用此规则 */
+    @supports (content: url('/static/images/logo.webp')) {
+        .logo-fallback {
+            content: url('/static/images/logo.webp');
+        }
+    }
+    .feature-grid {
+        margin-top: 48px;
+        text-align: left;
+    }
+    .feature-item {
+        padding: 16px;
+    }
+    .feature-icon {
+        font-size: 36px !important;
+        margin-bottom: 16px;
+        color: var(--mdui-color-theme);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-background"></div>
+<div class="mdui-container welcome-container">
+    <div class="mdui-card welcome-card">
+        <img alt="系统Logo" class="logo-image logo-fallback">
+        <div class="mdui-typo">
+            <h1 class="mdui-text-color-theme">欢迎来到活动报名系统</h1>
+            <p class="mdui-typo-subheading-opacity">请登录以查看和报名参加活动</p>
+        </div>
+        <div class="welcome-actions">
+            <a href="{% url 'activityui:login' %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">
+                <i class="mdui-icon material-icons">account_circle</i> 登录
+            </a>
+            <a href="{% url 'activityui:register' %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme">
+                <i class="mdui-icon material-icons">person_add</i> 注册
+            </a>
+        </div>
+
+        <div class="feature-grid mdui-row-xs-1 mdui-row-sm-2 mdui-row-md-3">
+            <div class="mdui-col">
+                <div class="feature-item">
+                    <i class="mdui-icon material-icons feature-icon">event</i>
+                    <div class="mdui-typo">
+                        <h3>活动报名</h3>
+                        <p class="mdui-text-color-theme-text">快速浏览和报名参加各类飞行活动</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-col">
+                <div class="feature-item">
+                    <i class="mdui-icon material-icons feature-icon">flight_takeoff</i>
+                    <div class="mdui-typo">
+                        <h3>飞行管理</h3>
+                        <p class="mdui-text-color-theme-text">轻松管理您的航班信息和报到状态</p>
+                    </div>
+                </div>
+            </div>
+            <div class="mdui-col">
+                <div class="feature-item">
+                    <i class="mdui-icon material-icons feature-icon">cloud</i>
+                    <div class="mdui-typo">
+                        <h3>实时实时天气</h3>
+                        <p class="mdui-text-color-theme-text">获取机场METAR和TAF实时天气信息</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

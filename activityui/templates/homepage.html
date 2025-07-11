@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block style %}
+{% include 'includes/activity_card_styles.html' %}
+<style>
+    .stats-card {
+        margin-bottom: 24px;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 16px;
+        padding: 16px;
+    }
+    .stat-item {
+        text-align: center;
+        padding: 16px;
+        border-radius: 4px;
+        background-color: rgba(0, 0, 0, 0.02);
+    }
+    .stat-title {
+        font-size: 1rem;
+        color: rgba(0, 0, 0, 0.6);
+        margin-bottom: 8px;
+    }
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 500;
+        color: var(--mdui-color-theme);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container activity-list">
+    <h1>欢迎回来，{{user.username}}</h1>
+    <br>
+    <div class="mdui-typo">
+    <h2>统计数据</h2>
+    </div>
+    <!-- 统计数据卡片 -->
+    <div class="mdui-card stats-card">
+        <div class="mdui-card-content">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-title">总飞行时长</div>
+                    <div class="stat-value">{{ total_flight_time.hours }}小时{{ total_flight_time.minutes }}分钟</div>
+                </div>
+                {% if is_atc %}
+                <div class="stat-item">
+                    <div class="stat-title">总管制时长</div>
+                    <div class="stat-value">{{ total_atc_time.hours }}小时{{ total_atc_time.minutes }}分钟</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>    {% if registered_activities %}
+    <div class="mdui-typo">
+        <h2>已报名的活动</h2>
+    </div>
+    <div class="mdui-panel" mdui-panel>
+        {% for activity_data in registered_activities %}
+            {% include 'includes/activity_card.html' %}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="mdui-typo">
+        <h2>即将开始的活动</h2>
+    </div>    {% if activities %}
+        <div class="mdui-panel" mdui-panel>
+            {% for activity_data in activities %}
+                {% include 'includes/activity_card.html' %}
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="mdui-text-color-black-secondary mdui-typo">
+            <h4>暂时没有即将开始的活动</h4>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

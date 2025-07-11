@@ -1,0 +1,143 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static activity_filters %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block breadcrumbs %}
+<div class="breadcrumbs">
+<a href="{% url 'admin:index' %}">{% translate 'Home' %}</a>
+&rsaquo; <a href="{% url 'admin:auth_user_changelist' %}">用户</a>
+&rsaquo; {{ title }}
+</div>
+{% endblock %}
+
+{% block content %}
+    {% if messages %}
+    <ul class="messagelist">
+        {% for message in messages %}
+        <li{% if message.tags %} class="{{ message.tags }}"{% endif %}>{{ message }}</li>
+        {% endfor %}
+    </ul>
+    {% endif %}
+
+    <div class="description">
+        <p>您正在编辑以下用户的管制权限：<b>{{ users|join:", " }}</b></p>
+        {% if users|length > 1 %}
+        <p class="help" id="help_text" style="margin-top: 10px;">
+            <img src="{% static 'admin/img/icon-alert.svg' %}" alt="Warning"> 由于您选择了多个用户，默认选项为"保持不变"。仅会更新您明确修改的权限。
+        </p>
+        {% endif %}
+    </div>
+
+
+    <fieldset class="module aligned">
+        <h2 style="background:#79aec8; color:white; padding:8px 12px;">权限说明</h2>
+        <ul style="list-style: none; padding-left: 0;">
+            <li style="margin-bottom: 8px;">
+                <span style="background-color: #e0e0e0; padding: 2px 6px; border-radius: 3px;">无权限</span> 
+                - 不能在该席位工作
+            </li>
+            <li style="margin-bottom: 8px;">
+                <span style="background-color: #ffecb3; color: #ff6f00; padding: 2px 6px; border-radius: 3px;">实习中</span> 
+                - 可以在教员监督下工作
+            </li>
+            <li style="margin-bottom: 8px;">
+                <span style="background-color: #c8e6c9; color: #2e7d32; padding: 2px 6px; border-radius: 3px;">已放单</span> 
+                - 可以独立工作
+            </li>
+        </ul>
+    </div>
+
+    <div id="content" class="flex">
+    <form method="POST">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="edit_atc_permissions">
+        <input type="hidden" name="post" value="yes">
+        {% for user_id in user_ids %}
+        <input type="hidden" name="_selected_action" value="{{ user_id }}">
+        {% endfor %}
+          <table style="width: 100%; margin-bottom: 20px; border-collapse: collapse; background: white; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
+            <thead>
+                <tr style="background: #f5f5f5;">
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #ddd;">席位</th>
+                    <th style="padding: 12px 15px; text-align: left; border-bottom: 2px solid #ddd;">权限</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for position, label in positions %}
+                <tr style="border-bottom: 1px solid #eee;">
+                    <td style="padding: 12px 15px;">{{ label }}</td>                    <td style="padding: 12px 15px;">
+                        <select name="permission_{{ position }}" style="width: 200px; padding: 6px 10px; border: 1px solid #ddd; border-radius: 4px; background: #fff;">
+                            {% if users|length > 1 %}
+                                <option value="unchanged" selected>保持不变</option>
+                            {% endif %}
+                            <option value="">无权限</option>
+                            {% for value, label in permissions %}
+                            <option value="{{ value }}" {% if users|length == 1 and initial_permissions|get_item:position == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>        <div class="submit-row">
+            <input type="submit" value="保存权限" class="default" name="_save" id="submit-btn">
+            <a href="{% url 'admin:auth_user_changelist' %}" class="closelink">返回</a>
+        </div>
+    </form>
+    
+    <script>
+        // 提交表单时显示加载状态
+        document.getElementById('submit-btn').addEventListener('click', function() {
+            this.value = '保存中...';
+            this.disabled = true;
+            this.form.submit();
+        });
+    </script>    <script>
+        // 添加选择框变化时的视觉反馈
+        document.querySelectorAll('select').forEach(select => {
+            // 初始化颜色
+            updateSelectColor(select);
+            
+            select.addEventListener('change', function() {
+                updateSelectColor(this);
+                // 显示变更提示
+                document.getElementById('submit-btn').classList.add('default');
+                
+                // 如果有任何更改，显示提示
+                const row = this.closest('tr');
+                const positionName = row.querySelector('td:first-child').textContent;
+                
+                // 移除旧的标记
+                const oldMark = row.querySelector('.change-mark');
+                if (oldMark) {
+                    oldMark.remove();
+                }
+                
+                // 添加新标记
+                if (this.value !== 'unchanged') {
+                    const mark = document.createElement('span');
+                    mark.className = 'change-mark';
+                    mark.style.marginLeft = '10px';
+                    mark.style.color = '#3c763d';
+                    mark.innerHTML = '&#10003;'; // 勾号
+                    this.parentNode.appendChild(mark);
+                }
+            });
+        });
+        
+        // 更新选择框颜色
+        function updateSelectColor(select) {
+            select.style.transition = 'all 0.2s';
+            if (select.value === '') {
+                select.style.backgroundColor = '#f5f5f5';
+            } else if (select.value === 'TRN') {
+                select.style.backgroundColor = '#fff3e0';
+            } else if (select.value === 'RLD') {
+                select.style.backgroundColor = '#e8f5e9';
+            } else if (select.value === 'unchanged') {
+                select.style.backgroundColor = '#fff';
+            }
+        }
+    </script>
+{% endblock %}

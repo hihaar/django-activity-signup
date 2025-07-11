@@ -1,0 +1,195 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ activity.name }} - 活动详情{% endblock %}
+
+{% block nav_back %}
+<a href="{% url 'activityui:homepage' %}" class="mdui-btn mdui-btn-icon">
+    <i class="mdui-icon material-icons">arrow_back</i>
+</a>
+{% endblock %}
+
+{% block page_title %}活动详情{% endblock %}
+
+{% block style %}
+<style>
+    .detail-container {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 16px;
+        padding-top: 80px;
+    }
+    .detail-card {
+        margin: 16px 0;
+        padding: 24px;
+    }
+    .activity-date {
+        color: rgba(0, 0, 0, 0.54);
+        margin: 16px 0;
+    }
+    .activity-description {
+        margin: 24px 0;
+        line-height: 1.6;
+        white-space: pre-line;
+    }
+    .action-buttons {
+        margin-top: 24px;
+    }
+    .action-buttons .mdui-btn {
+        margin-right: 16px;
+    }
+    .boarding-pass-container {
+        width: 100%;
+        max-width: 860px;
+        min-height: 420px;
+        border: none;
+        margin: 24px auto;
+        display: none;
+        background: transparent;
+    }
+    
+    .boarding-pass-container.show {
+        display: block;
+    }
+
+    @media screen and (max-width: 768px) {
+        .boarding-pass-container {
+            max-height: 380px;
+            margin: 10px auto;
+        }
+        
+        .detail-container {
+            padding: 60px 12px 16px;
+        }
+    }
+
+    @media screen and (max-width: 480px) {
+        .boarding-pass-container {
+            min-height: 360px;
+            margin: 16px auto;
+        }
+        
+        .detail-container {
+            padding: 60px 8px 16px;
+        }
+        
+        .detail-card {
+            padding: 16px 12px;
+            margin: 12px 0;
+        }
+        
+        .register-buttons {
+            flex-direction: column;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container detail-container">
+    <div class="mdui-card">
+        <div class="mdui-card-primary">
+            <div class="mdui-card-primary-title">{{ activity.name }}</div>
+            <div class="mdui-card-primary-subtitle">
+                <h3>活动时间：{{ activity.date }} {{ activity.time }} - {% if activity.end_time %}{{ activity.end_time }}{% else %}{{ activity.time|time:"H:i" }} + 1小时{% endif %}</h3>
+                {% if not can_register %}
+                    <div class="mdui-text-color-red">
+                        {% if activity.get_status == 'starting_soon' %}
+                            <h4>活动即将开始，报名已关闭</h4>
+                        {% elif activity.get_status == 'ended' %}
+                            <h4>活动已结束</h4>
+                        {% endif %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% if is_registered %}
+        <iframe src="{% url 'activityui:boarding_pass' activity.id %}" class="boarding-pass-container show" frameborder="0"></iframe>
+        {% endif %}
+        <div class="mdui-card-content">
+            <div class="mdui-typo">
+                {{ activity.description|linebreaks }}
+            </div>
+        </div>
+        <div class="mdui-card-actions">
+            {% if is_registered %}
+                <button class="mdui-btn mdui-btn-raised mdui-ripple" disabled>已报名</button>
+            {% else %}
+                {% if can_register %}
+                    <a href="{% url 'activityui:register_activity' activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">飞行员报名</a>
+                {% else %}
+                    <button class="mdui-btn mdui-btn-raised mdui-ripple" disabled>报名已关闭</button>
+                {% endif %}
+            {% endif %}
+              {% if has_atc_permission %}
+                {% if is_atc_registered %}
+                    <button class="mdui-btn mdui-btn-raised mdui-ripple" disabled>已报名管制</button>
+                {% else %}
+                    {% if can_register %}
+                        <a href="{% url 'activityui:register_atc' activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme">管制员报名</a>
+                    {% else %}
+                        <button class="mdui-btn mdui-btn-raised mdui-ripple" disabled>报名已关闭</button>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+            <a href="{% url 'activityui:weather' activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple">实时天气</a>
+        </div>
+    </div>
+
+    {% if crew_registers or atc_registers %}
+    <div class="mdui-panel" mdui-panel>
+        {% if crew_registers %}
+        <div class="mdui-panel-item">
+            <div class="mdui-panel-item-header">
+                <div class="mdui-panel-item-title">机组名单</div>
+                <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+            </div>
+            <div class="mdui-panel-item-body">
+                <ul class="mdui-list">
+                    {% for crew in crew_registers %}
+                    <div class="mdui-list-item-content">
+                        
+                        <div class="mdui-list-item-title">
+                            <a href="{% url 'activityui:user_profile' crew.user.username %}" class="mdui-text-color-theme">
+                            {{ crew.user.username }}
+                            </a>
+                        </div>
+                        <div class="mdui-list-item-text mdui-list-item-one-line">
+                            {{ crew.aircraft }} - {{ crew.flt_nbr }}
+                        </div>
+                    </div>
+                    <li class="mdui-divider-inset mdui-m-y-0"></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if atc_registers %}
+        <div class="mdui-panel-item">
+            <div class="mdui-panel-item-header">
+                <div class="mdui-panel-item-title">管制员名单</div>
+                <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+            </div>
+            <div class="mdui-panel-item-body">
+                <ul class="mdui-list">
+                    {% for atc in atc_registers %}
+                    <div class="mdui-list-item-content">
+                        <div class="mdui-list-item-title">
+                            <a href="{% url 'activityui:user_profile' atc.user.username %}" class="mdui-text-color-theme">
+                                {{ atc.user.username }}
+                            </a>
+                        </div>
+                        <div class="mdui-list-item-text mdui-list-item-one-line">
+                            席位：{{ atc.seat }}
+                        </div>
+                    </div>
+                    <li class="mdui-divider-inset mdui-m-y-0"></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

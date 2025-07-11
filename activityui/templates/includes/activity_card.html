@@ -1,0 +1,30 @@
+<div class="mdui-panel-item">
+    <div class="mdui-panel-item-header">
+        <div class="mdui-panel-item-title">{{ activity_data.activity.name }}</div>
+        <div class="mdui-panel-item-summary">
+            {% if activity_data.is_registered %}
+                {% if activity_data.status == 'ended' %}
+                <span class="mdui-text-color-green">已参加</span>
+                {% else %}
+                <span class="mdui-text-color-green">已报名</span>
+                {% endif %}
+            {% else %}
+                {% if activity_data.status == 'ended' %}
+                <span class="mdui-text-color-grey-500">已结束</span>
+                {% elif activity_data.status == 'starting_soon' %}
+                <span class="mdui-text-color-green">即将开始</span>
+                {% else %}
+                <span class="mdui-text-color-black-secondary">未开始</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        <div class="mdui-panel-item-summary">{{ activity_data.activity.date }}</div>
+        <i class="mdui-panel-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+    </div>
+    <div class="mdui-panel-item-body">
+        <p>{{ activity_data.activity.description|truncatechars:100 }}</p>
+        <div class="mdui-panel-item-actions">
+            <a href="{% url 'activityui:activity_detail' activity_data.activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">查看详情</a>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block title %}注册 - 活动报名系统{% endblock %}
+
+{% block page_title %}注册{% endblock %}
+
+{% block style %}
+<style>
+    body {
+        background-color: white;
+    }
+    .register-card {
+        max-width: 400px;
+        margin: 100px auto;
+        padding: 24px;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+    }
+    .register-title {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+    .register-form {
+        padding: 16px;
+    }
+    .form-actions {
+        margin-top: 24px;
+        text-align: right;
+    }
+    .username-prefix {
+        position: absolute;
+        left: 0;
+        top: 30px;
+    }    .logo-image {
+        max-width: 300px;
+        margin-bottom: 0;
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    
+    /* 支持WebP的浏览器使用此规则 */
+    @supports (content: url('/static/images/logo.webp')) {
+        .logo-fallback {
+            content: url('/static/images/logo.webp');
+        }
+    }
+    
+    /* 修复抽屉样式 */
+    .mdui-drawer {
+        background-color: #fff !important;
+        border-right: 1px solid rgba(0, 0, 0, 0.12);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="auth-background"></div>
+<div class="mdui-container">
+    <div class="mdui-card register-card">
+        <img alt="系统Logo" class="logo-image logo-fallback">
+        <div class="register-title">
+            <h2 class="mdui-typo-headline">注册</h2>
+        </div>
+        <form method="post" class="register-form">
+            {% csrf_token %}            <div class="mdui-textfield mdui-textfield-floating-label" style="position: relative;">
+                <label class="mdui-textfield-label">用户名</label>
+                <input class="mdui-textfield-input username-input" type="text" name="username" required style="text-transform: uppercase;"/>
+            </div>
+            <div class="mdui-textfield mdui-textfield-floating-label">
+                <label class="mdui-textfield-label">密码</label>
+                <input class="mdui-textfield-input" type="password" name="password" required/>
+            </div>
+            <div class="mdui-textfield mdui-textfield-floating-label">
+                <label class="mdui-textfield-label">确认密码</label>
+                <input class="mdui-textfield-input" type="password" name="confirm_password" required/>
+            </div>
+            
+            <!-- Turnstile Widget -->
+            <div style="display: block; flex-flow: row;">
+                <div class="cf-turnstile" data-sitekey="{{ turnstile_site_key }}" data-size="flexible" data-theme="light" data-callback="onTurnstileVerified"></div>
+            </div>
+            
+            <!--
+            <div class="verification-progress">
+                <div class="mdui-progress">
+                    <div class="mdui-progress-indeterminate"></div>
+                </div>
+            </div>
+        -->
+            
+            {% if error %}
+            <div class="mdui-text-color-red">{{ error }}</div>
+            {% endif %}
+            <div class="form-actions">
+                <a href="{% url 'activityui:login' %}" class="mdui-btn mdui-ripple">返回登录</a>
+                <button class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent submit-btn" disabled>注册</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<script>
+function onTurnstileVerified() {
+    const submitBtn = document.querySelector('.submit-btn');
+    const progressBar = document.querySelector('.verification-progress');
+    if (submitBtn) {
+        submitBtn.removeAttribute('disabled');
+    }
+    if (progressBar) {
+        progressBar.style.display = 'none';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    const progressBar = document.querySelector('.verification-progress');
+    if (progressBar) {
+        progressBar.style.display = 'block';
+    }
+});
+</script>
+{% endblock %}

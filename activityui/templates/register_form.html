@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block title %}报名 - {{ activity.name }}{% endblock %}
+
+{% block nav_back %}
+<a href="{% url 'activityui:activity_detail' activity.id %}" class="mdui-btn mdui-btn-icon">
+    <i class="mdui-icon material-icons">arrow_back</i>
+</a>
+{% endblock %}
+
+{% block page_title %}活动报名{% endblock %}
+
+{% block style %}
+<style>
+    .form-container {
+        padding-top: 80px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container form-container">
+    <div class="mdui-row">
+        <div class="mdui-col-sm-8 mdui-col-offset-sm-2">
+            <div class="mdui-card" style="margin-top: 20px;">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">{{ activity.name }}</div>
+                    <div class="mdui-card-primary-subtitle">请填写报名信息</div>
+                </div>
+                
+                <div class="mdui-card-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="mdui-textfield mdui-textfield-floating-label">
+                            <label class="mdui-textfield-label">航班号</label>
+                            <input class="mdui-textfield-input" type="text" name="flt_nbr" required/>
+                        </div>
+                        
+                        <div class="mdui-textfield mdui-textfield-floating-label">
+                            <label class="mdui-textfield-label">机型</label>
+                            <input class="mdui-textfield-input" type="text" name="aircraft" required/>
+                        </div>
+
+                        <div class="mdui-row" style="margin-top: 20px;">
+                            <button type="submit" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">确认报名</button>
+                            <a href="{% url 'activityui:activity_detail' activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple">取消</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+{% load activity_filters %}
+
+{% block title %}管制员列表 - 活动报名系统{% endblock %}
+{% block page_title %}管制员列表{% endblock %}
+
+{% block nav_back %}
+<a class="mdui-btn mdui-btn-icon mdui-ripple" href="{% url 'activityui:homepage' %}">
+    <i class="mdui-icon material-icons">arrow_back</i>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container" style="margin-top: 80px; padding-bottom: 40px;">
+    <div class="mdui-card mdui-shadow-2">
+        <div class="mdui-card-primary">
+            <div class="mdui-card-primary-title">管制员席位权限列表</div>
+            <div class="mdui-card-primary-subtitle">展示所有拥有管制权限的用户及其对应席位的权限状况</div>
+        </div>
+        <div class="mdui-card-content">
+            <div class="mdui-table-fluid">
+                <table class="mdui-table mdui-table-hoverable">
+                    <thead>
+                        <tr>
+                            <th>用户名</th>
+                            {% for position_code, position_name in positions %}
+                            <th>{{ position_name }}</th>
+                            {% endfor %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for controller in controllers %}
+                        <tr>
+                            <td>{{ controller.username }}</td>
+                            {% for position_code, position_name in positions %}
+                                <td>
+                                    {% if controller.permissions|get_item:position_code == 'TRN' %}
+                                    <span class="mdui-text-color-blue">实习中</span>
+                                    {% elif controller.permissions|get_item:position_code == 'RLD' %}
+                                    <span class="mdui-text-color-green">已放单</span>
+                                    {% else %}
+                                    <span class="mdui-text-color-grey">无权限</span>
+                                    {% endif %}
+                                </td>
+                            {% endfor %}
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="{{ positions|length|add:1 }}" class="mdui-text-center">暂无管制员数据</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

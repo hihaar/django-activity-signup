@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}活动报名系统{% endblock %}</title>
+    
+    <!-- 预加载Roboto字体以提高加载速度 -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/fonts/roboto/Roboto-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/fonts/roboto/Roboto-Medium.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/icons/material-icons/MaterialIcons-Regular.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/fonts/roboto/Roboto-Bold.woff2" as="font" type="font/woff2" crossorigin>
+    
+    <!-- MDUI CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/css/mdui.min.css">
+    
+    <!-- Microsoft Clarity -->
+    <script type="text/javascript">
+        (function(c,l,a,r,i,t,y){
+            c[a]=c[a]||function(){(c[a].q=c[a].q||[]).push(arguments)};
+            t=l.createElement(r);t.async=1;t.src="https://www.clarity.ms/tag/"+i;
+            y=l.getElementsByTagName(r)[0];y.parentNode.insertBefore(t,y);
+        })(window, document, "clarity", "script", "rkn8oojzrq");
+    </script>
+      <style>
+        /* 自定义消息对话框样式 */
+        .mdui-dialog-error .mdui-dialog-title {
+            color: #f44336;
+        }
+        
+        .mdui-dialog-warning .mdui-dialog-title {
+            color: #ff9800;
+        }
+        
+        /* 确保对话框遮罩层正确显示 */
+        .mdui-overlay {
+            z-index: 6000 !important;
+        }
+        
+        .mdui-dialog {
+            z-index: 6001 !important;
+        }
+        
+        /* ---------- 全局样式 ---------- */
+        body {
+            display: flex;
+            min-height: 100vh;
+            background-color: #fff;
+        }
+        
+        /* 确保文本有合理的间距 */
+        p, h1, h2, h3, h4, h5, h6, div {
+            max-width: 100%;
+            overflow-wrap: break-word;
+            word-wrap: break-word;
+        }
+        
+        /* ---------- 布局和背景 ---------- */
+        main {
+            flex: 1;
+            width: 100%;
+            overflow-x: hidden;
+        }
+        
+        /* 背景图片 */
+        .auth-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: -1;
+            opacity: 1;
+            /* 首先为所有浏览器提供JPG版本作为回退 */
+            background-image: url('/static/images/login_background.jpg');
+        }
+        
+        /* 支持WebP的浏览器将使用此规则 */
+        @supports (background-image: url('/static/images/login_background.webp')) {
+            .auth-background {
+                background-image: url('/static/images/login_background.webp');
+            }
+        }
+        
+        /* ---------- 组件样式 ---------- */
+        /* 应用栏 */
+        .mdui-appbar {
+            z-index: 5000 !important;
+        }
+        
+        /* 导航抽屉 */
+        .mdui-drawer {
+            position: fixed;
+            top: 64px !important;
+            height: calc(100% - 64px) !important;
+            background-color: #fff !important;
+            border-right: 1px solid rgba(0, 0, 0, 0.12);
+            overflow-y: auto;
+            z-index: 4000;
+        }
+        
+        .mdui-drawer.mdui-drawer-close {
+            transform: translateX(-100%);
+        }
+        
+        .mdui-drawer.mdui-drawer-open {
+            transform: translateX(0);
+        }
+        
+        /* 抽屉头部 */
+        .drawer-header {
+            height: 120px;
+            padding: 16px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+            background-color: var(--mdui-color-theme);
+            background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.6)), 
+                              url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAQAAAAECAYAAACp8Z5+AAAAEklEQVQImWNgYGD4z0AswK4SAFXuAf8EPy+xAAAAAElFTkSuQmCC');
+            background-repeat: repeat;
+            color: #fff;
+            margin-top: 0;
+            position: relative;
+        }
+        
+        .drawer-header-avatar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 16px;
+            position: absolute;
+            bottom: 24px;
+            left: 16px;
+        }
+        
+        .drawer-header-avatar i {
+            font-size: 32px;
+        }
+        
+        .drawer-header-name {
+            font-size: 1.2em;
+            font-weight: 500;
+            margin-bottom: 4px;
+            position: absolute;
+            bottom: 8px;
+            left: 16px;
+        }
+        
+        .drawer-header-email {
+            font-size: 0.9em;
+            color: rgba(255, 255, 255, 0.7);
+            position: absolute;
+            bottom: 32px;
+            left: 16px;
+        }
+        
+        /* ---------- 响应式设计 ---------- */
+        @media (max-width: 1024px) {
+            .mdui-drawer {
+                top: 56px !important;
+                height: calc(100% - 56px) !important;
+            }
+            
+            .drawer-header {
+                height: 140px;
+            }
+        }
+    </style>
+    
+    {% block style %}{% endblock %}
+</head>
+<body class="mdui-theme-primary-indigo mdui-theme-accent-pink">
+    <!-- 顶部应用栏 -->
+    <header class="mdui-appbar mdui-appbar-fixed">
+        <div class="mdui-toolbar mdui-color-theme">
+            {% if user.is_authenticated %}
+                <button class="mdui-btn mdui-btn-icon mdui-ripple" mdui-drawer="{target: '#main-drawer'}">
+                    <i class="mdui-icon material-icons">menu</i>
+                </button>
+            {% endif %}
+            {% block nav_back %}{% endblock %}
+            <span class="mdui-typo-title">{% block page_title %}活动报名系统{% endblock %}</span>
+            <div class="mdui-toolbar-spacer"></div>
+            {% if user.is_authenticated %}
+            <!-- 用户头像和菜单可在此添加 -->
+            {% else %}
+                {% if request.path != '/login/' %}
+                    <a href="{% url 'activityui:login' %}" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">登录</a>
+                {% endif %}
+            {% endif %}
+        </div>
+    </header>
+
+    {% if user.is_authenticated %}
+    <!-- 导航抽屉 -->
+    <div class="mdui-drawer mdui-drawer-close" id="main-drawer">
+        <!-- 用户信息区域 -->
+        <div class="drawer-header">
+            <div class="drawer-header-avatar">
+                <i class="mdui-icon material-icons">account_circle</i>
+            </div>
+            <div class="drawer-header-name">{{ user.username }}</div>
+            {% if user.email %}
+                <div class="drawer-header-email">{{ user.email }}</div>
+            {% endif %}
+        </div>
+        
+        <!-- 导航菜单 -->
+        <div class="mdui-list">
+            <!-- 主要导航项 -->
+            <a href="{% url 'activityui:homepage' %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
+                <div class="mdui-list-item-content">首页</div>
+            </a>
+            <a href="{% url 'activityui:upcoming_activities' %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">event</i>
+                <div class="mdui-list-item-content">计划的活动</div>
+            </a>
+            <a href="{% url 'activityui:past_activities' %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">history</i>
+                <div class="mdui-list-item-content">过往活动</div>
+            </a>
+            <a href="{% url 'activityui:user_profile' user.username %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">person</i>
+                <div class="mdui-list-item-content">我的主页</div>
+            </a>
+
+            <!-- 管制中心折叠菜单 -->
+            <div class="mdui-divider"></div>
+            <div class="mdui-collapse" mdui-collapse>
+                <div class="mdui-collapse-item">
+                    <div class="mdui-collapse-item-header mdui-list-item mdui-ripple">
+                        <i class="mdui-list-item-icon mdui-icon material-icons">flight_takeoff</i>
+                        <div class="mdui-list-item-content">管制中心</div>
+                        <i class="mdui-collapse-item-arrow mdui-icon material-icons">keyboard_arrow_down</i>
+                    </div>
+                    <div class="mdui-collapse-item-body mdui-list">
+                        <a href="{% url 'activityui:atc_controllers' %}" class="mdui-list-item mdui-ripple">管制员列表</a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 用户相关操作 -->
+            <div class="mdui-divider"></div>
+            <a href="{% url 'activityui:change_password' %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">lock</i>
+                <div class="mdui-list-item-content">修改密码</div>
+            </a>
+            <a href="{% url 'activityui:logout' %}" class="mdui-list-item mdui-ripple">
+                <i class="mdui-list-item-icon mdui-icon material-icons">exit_to_app</i>
+                <div class="mdui-list-item-content">退出登录</div>
+            </a>
+            
+            <!-- 反馈链接 -->
+            <div class="mdui-divider"></div>
+            <a href="https://forms.office.com/r/CZbDTWnW6K" class="mdui-list-item mdui-ripple" target="_blank" rel="noopener noreferrer">
+                <i class="mdui-list-item-icon mdui-icon material-icons">feedback</i>
+                <div class="mdui-list-item-content">反馈/建议</div>
+            </a>
+        </div>
+    </div>
+    {% endif %}
+    
+    <!-- 主内容区域 -->
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+      <!-- 隐藏的消息数据，用于JavaScript读取 -->
+    {% if messages %}
+    <div id="django-messages" style="display: none;" data-messages='[
+        {% for message in messages %}
+            {
+                "message": "{{ message|escapejs }}",
+                "tags": "{{ message.tags|default:"info"|escapejs }}"
+            }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ]'></div>
+    {% endif %}
+    
+      <!-- JS资源 -->
+    <!-- MDUI JavaScript -->
+    <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.1/dist/js/mdui.min.js"></script>
+    
+    {% block script %}{% endblock %}
+    
+    <!-- 页面功能初始化脚本 -->    <script>
+        // WebP支持检测
+        function checkWebpSupport() {
+            var img = new Image();
+            img.onload = function() {
+                var result = (img.width > 0) && (img.height > 0);
+                if (result) {
+                    document.documentElement.classList.add('webp');
+                }
+            };
+            img.onerror = function() {
+                // 如果加载失败，说明不支持WebP
+            };
+            img.src = 'data:image/webp;base64,UklGRhoAAABXRUJQVlA4TA0AAAAvAAAAEAcQERGIiP4HAA==';
+        }
+          // 显示消息函数
+        function displayMessages() {
+            const messagesElement = document.getElementById('django-messages');
+            if (!messagesElement) return;
+            
+            try {
+                const messagesData = messagesElement.dataset.messages;
+                // JSON数据现在应该已经是有效格式
+                const messages = JSON.parse(messagesData);
+                console.log("解析的消息:", messages); // 调试输出
+                
+                messages.forEach(function(message) {
+                    const messageText = message.message;
+                    const messageType = message.tags;
+                      // 为不同类型的消息选择不同的图标
+                    let icon = 'notifications';
+                    if (messageType === 'success') icon = 'check_circle';
+                    else if (messageType === 'error') icon = 'error';
+                    else if (messageType === 'warning') icon = 'warning';
+                    else if (messageType === 'info') icon = 'info';
+                    
+                    console.log("处理消息:", messageType, messageText); // 调试输出
+                    
+                    try {
+                        // 成功和信息消息使用snackbar显示
+                        if (messageType === 'success' || messageType === 'info') {
+                            mdui.snackbar({
+                                message: messageText,
+                                position: 'bottom',
+                                timeout: 3000,
+                                closeOnOutsideClick: true
+                            });
+                        }                        // 错误和警告消息使用对话框显示
+                        else if (messageType === 'error' || messageType === 'warning') {
+                            // 使用MDUI的alert方法显示对话框
+                            const dialogOptions = {
+                                confirmText: '确定',
+                                history: false,  // 防止对话框影响浏览器历史记录
+                                modal: true,     // 确保对话框是模态的
+                                cssClass: messageType === 'error' ? 'mdui-dialog-error' : 'mdui-dialog-warning'
+                            };
+                            
+                            mdui.alert(
+                                messageText, 
+                                messageType === 'error' ? '错误' : '警告',
+                                function() {
+                                    // 对话框关闭时的回调
+                                    console.log('对话框已关闭:', messageType, messageText);
+                                    // 可以在这里添加额外的清理逻辑
+                                },
+                                dialogOptions                            );
+                        }
+                    } catch (err) {
+                        console.error("显示消息时出错:", err);
+                        // 如果MDUI方法失败，回退到浏览器原生alert
+                        alert((messageType === 'error' ? '错误: ' : messageType === 'warning' ? '警告: ' : '') + messageText);
+                    }
+                });
+            } catch (e) {
+                console.error('处理消息时出错:', e);
+            }
+        }
+          // 确保MDUI库加载完毕后执行消息显示
+        function ensureMduiLoaded(callback, maxRetries = 10, interval = 100) {
+            // 如果mdui已经加载好了，直接执行回调
+            if (typeof mdui !== 'undefined') {
+                callback();
+                return;
+            }
+            
+            let retries = 0;
+            
+            // 设置轮询检查
+            const checkMdui = setInterval(function() {
+                if (typeof mdui !== 'undefined') {
+                    clearInterval(checkMdui);
+                    callback();
+                } else if (retries >= maxRetries) {
+                    clearInterval(checkMdui);
+                    console.error('MDUI加载超时，无法显示消息');
+                }
+                retries++;
+            }, interval);
+        }
+        
+        // 页面加载完成后执行
+        document.addEventListener('DOMContentLoaded', function() {
+            // 检测WebP支持
+            checkWebpSupport();
+            
+            // 确保MDUI加载后再初始化组件和显示消息
+            ensureMduiLoaded(function() {
+                // 确保抽屉初始化完成
+                var drawer = new mdui.Drawer('#main-drawer', {
+                    swipe: true
+                });
+                
+                // MDUI自动初始化所有带有mdui-collapse属性的元素
+                mdui.mutation();
+                
+                // 显示消息
+                displayMessages();
+            });
+        });
+    </script>
+</body>
+</html>

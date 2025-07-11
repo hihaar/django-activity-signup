@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+
+{% block title %}管制员报名 - {{ activity.name }}{% endblock %}
+
+{% block nav_back %}
+<a href="{% url 'activityui:activity_detail' activity.id %}" class="mdui-btn mdui-btn-icon">
+    <i class="mdui-icon material-icons">arrow_back</i>
+</a>
+{% endblock %}
+
+{% block page_title %}管制员报名{% endblock %}
+
+{% block style %}
+<style>
+    .form-container {
+        padding-top: 80px;
+    }
+    
+    .position-group {
+        margin-bottom: 16px;
+    }
+    
+    .position-radio {
+        display: block;
+        padding: 12px 16px;
+        margin: 8px 0;
+        border: 1px solid rgba(0, 0, 0, .12);
+        border-radius: 4px;
+        transition: all .3s;
+    }
+    
+    .position-radio:hover {
+        background-color: rgba(0, 0, 0, .04);
+    }
+    .position-radio.disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+    
+    .position-radio input[type="radio"] {
+        margin-right: 8px;
+    }
+    
+    .position-radio .permission-tag {
+        margin-left: 8px;
+        padding: 2px 6px;
+        font-size: 12px;
+        border-radius: 3px;
+        background-color: #e0e0e0;
+    }
+    
+    .permission-tag.trn {
+        background-color: #ffecb3;
+        color: #ff6f00;
+    }
+    
+    .permission-tag.rld {
+        background-color: #c8e6c9;
+        color: #2e7d32;
+    }
+    
+    .position-radio.occupied {
+        background-color: #ffebee;
+    }
+    
+    .permission-tag.occupied {
+        background-color: #ffcdd2;
+        color: #c62828;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container form-container">
+    <div class="mdui-row">
+        <div class="mdui-col-sm-8 mdui-col-offset-sm-2">
+            <div class="mdui-card" style="margin-top: 20px;">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">{{ activity.name }}</div>
+                    <div class="mdui-card-primary-subtitle">请选择管制席位</div>
+                </div>
+                <div class="mdui-card-content">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="position-group">                            {% for position in positions %}
+                                <label class="position-radio {% if not position.enabled or position.occupied %}disabled{% endif %} {% if position.occupied %}occupied{% endif %}">
+                                    <input type="radio" 
+                                           name="seat" 
+                                           value="{{ position.code }}"
+                                           {% if not position.enabled or position.occupied %}disabled{% endif %}
+                                           required>
+                                    {{ position.label }}
+                                    {% if position.occupied %}
+                                        <span class="permission-tag occupied">已占用</span>
+                                    {% elif position.permission == 'TRN' %}
+                                        <span class="permission-tag trn">实习中</span>
+                                    {% elif position.permission == 'RLD' %}
+                                        <span class="permission-tag rld">已放单</span>
+                                    {% else %}
+                                        <span class="permission-tag">无权限</span>
+                                    {% endif %}
+                                </label>
+                            {% endfor %}
+                        </div>
+                        <div class="mdui-card-actions" style="text-align: right;">
+                            <button type="submit" class="mdui-btn mdui-btn-raised mdui-ripple mdui-color-theme-accent">报名</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

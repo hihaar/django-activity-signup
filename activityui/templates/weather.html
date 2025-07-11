@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{% block title %}实时天气 - {{ activity.name }}{% endblock %}
+
+{% block nav_back %}
+<a href="{% url 'activityui:activity_detail' activity.id %}" class="mdui-btn mdui-btn-icon">
+    <i class="mdui-icon material-icons">arrow_back</i>
+</a>
+{% endblock %}
+
+{% block page_title %}实时天气{% endblock %}
+
+{% block style %}
+<style>
+    .weather-container {
+        padding-top: 80px;
+    }
+    .weather-card {
+        margin: 16px 0;
+        padding: 20px;
+    }
+    .airport-info {
+        margin-bottom: 20px;
+    }
+    .weather-data {
+        font-family: monospace;
+        padding: 8px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        margin: 8px 0;
+    }
+    .weather-title {
+        font-size: 1.2em;
+        margin: 16px 0 8px 0;
+        color: rgba(0, 0, 0, 0.87);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .weather-refresh {
+        font-size: 0.8em;
+        color: rgba(0, 0, 0, 0.54);
+    }
+    .refresh-button {
+        margin-left: 8px;
+    }
+    .error-message {
+        color: #f44336;
+        padding: 8px;
+        margin: 8px 0;
+        background-color: #ffebee;
+        border-radius: 4px;
+    }
+    .loading-indicator {
+        color: rgba(0, 0, 0, 0.54);
+        font-style: italic;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mdui-container weather-container">
+    <div class="mdui-row">
+        <div class="mdui-col-sm-10 mdui-col-offset-sm-1">
+            <div class="mdui-card weather-card">
+                <div class="airport-info">
+                    <h2>始发机场 ({{ activity.departure }})</h2>
+                    <div class="weather-title">
+                        <span>METAR</span>
+                        <span class="weather-refresh">上次更新: <span id="dep-metar-time">-</span></span>
+                    </div>
+                    <div class="weather-data" id="dep-metar">
+                        <span class="loading-indicator">正在加载...</span>
+                    </div>
+                    <div class="weather-title">
+                        <span>TAF</span>
+                        <span class="weather-refresh">上次更新: <span id="dep-taf-time">-</span></span>
+                    </div>
+                    <div class="weather-data" id="dep-taf">
+                        <span class="loading-indicator">正在加载...</span>
+                    </div>
+                    <div id="dep-error-container"></div>
+                </div>
+
+                <div class="airport-info">
+                    <h2>目的机场 ({{ activity.arrival }})</h2>
+                    <div class="weather-title">
+                        <span>METAR</span>
+                        <span class="weather-refresh">上次更新: <span id="arr-metar-time">-</span></span>
+                    </div>
+                    <div class="weather-data" id="arr-metar">
+                        <span class="loading-indicator">正在加载...</span>
+                    </div>
+                    <div class="weather-title">
+                        <span>TAF</span>
+                        <span class="weather-refresh">上次更新: <span id="arr-taf-time">-</span></span>
+                    </div>
+                    <div class="weather-data" id="arr-taf">
+                        <span class="loading-indicator">正在加载...</span>
+                    </div>
+                    <div id="arr-error-container"></div>
+                </div>
+
+                <div style="margin-top: 20px;">
+                    <button class="mdui-btn mdui-btn-raised mdui-ripple refresh-button" onclick="refreshAllWeather()">
+                        <i class="mdui-icon material-icons">refresh</i> 刷新数据
+                    </button>
+                    <a href="{% url 'activityui:activity_detail' activity.id %}" class="mdui-btn mdui-btn-raised mdui-ripple">返回</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+function formatTime(date) {
+    return date.toLocaleTimeString('zh-CN', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+    });
+}
+
+function showError(container, message) {
+    const errorContainer = document.getElementById(container);
+    errorContainer.innerHTML = `<div class="error-message">${message}</div>`;
+}
+
+function clearError(container) {
+    const errorContainer = document.getElementById(container);
+    errorContainer.innerHTML = '';
+}
+
+function updateWeatherDisplay(type, data) {
+    const updateTime = new Date();
+    const timeStr = formatTime(updateTime);
+    
+    if (type === 'departure') {
+        document.getElementById('dep-metar').textContent = data.metar;
+        document.getElementById('dep-taf').textContent = data.taf;
+        document.getElementById('dep-metar-time').textContent = timeStr;
+        document.getElementById('dep-taf-time').textContent = timeStr;
+    } else {
+        document.getElementById('arr-metar').textContent = data.metar;
+        document.getElementById('arr-taf').textContent = data.taf;
+        document.getElementById('arr-metar-time').textContent = timeStr;
+        document.getElementById('arr-taf-time').textContent = timeStr;
+    }
+}
+
+async function fetchWeather(type) {
+    const errorContainer = type === 'departure' ? 'dep-error-container' : 'arr-error-container';
+    try {
+        clearError(errorContainer);
+        const url = type === 'departure' 
+            ? "{% url 'activityui:departure_weather_api' activity.id %}"
+            : "{% url 'activityui:arrival_weather_api' activity.id %}";
+        const response = await fetch(url);
+        const result = await response.json();
+        
+        if (result.success) {
+            updateWeatherDisplay(type, result.data);
+        } else {
+            showError(errorContainer, result.error || '获取天气数据失败');
+        }
+    } catch (error) {
+        showError(errorContainer, '网络错误，请稍后重试');
+    }
+}
+
+async function refreshAllWeather() {
+    // 并行请求两个机场的天气数据
+    await Promise.all([
+        fetchWeather('departure'),
+        fetchWeather('arrival')
+    ]);
+}
+
+// 页面加载时获取数据
+document.addEventListener('DOMContentLoaded', () => {
+    refreshAllWeather();
+    
+    // 每5分钟自动刷新一次
+    setInterval(refreshAllWeather, 5 * 60 * 1000);
+});
+</script>
+{% endblock %}
