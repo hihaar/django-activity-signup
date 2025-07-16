@@ -79,7 +79,3 @@ python3 manage.py runserver
 ## 维护与支持
 
 我不会再对该项目进行维护。如果你 fork 本项目用于自己的组织或学习使用，无需通知我，但请遵守上述LICENSE。
-
-愿你在属于自己的天空里飞得更高，再会。
-
-— hihaar
